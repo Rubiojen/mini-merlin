@@ -1,24 +1,37 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+// app/_layout.tsx
+import {useThemeColor} from "@/hooks/useThemeColor";
+import {useAppState} from "@/state/appState";
+import {Stack} from "expo-router";
+import {StatusBar} from "expo-status-bar";
+import {useEffect} from "react";
+import {useSharedValue} from "react-native-reanimated";
+import {SafeAreaProvider, SafeAreaView} from "react-native-safe-area-context";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const setThemeProgress = useAppState((s) => s.setThemeProgress);
+  const isAppDark = useAppState((s) => s.isDarkMode);
+  const progress = useSharedValue(isAppDark ? 1 : 0);
+  const mainBg = useThemeColor("mainBg");
+
+  useEffect(() => {
+    setThemeProgress(progress);
+  }, [isAppDark, progress, setThemeProgress]);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <SafeAreaView
+        edges={["right", "left"]}
+        style={{
+          flex: 1,
+          backgroundColor: mainBg,
+        }}
+      >
+        <Stack initialRouteName="index" screenOptions={{headerShown: false}}>
+          <Stack.Screen name="index" options={{headerShown: false}} />
+          <Stack.Screen name="preview" options={{title: "Preview & Edit"}} />
+        </Stack>
+        <StatusBar translucent style={isAppDark ? "light" : "dark"} />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }

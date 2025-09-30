@@ -1,4 +1,4 @@
-# Welcome to your Expo app 👋
+# Merlin Assignment 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
@@ -16,35 +16,33 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+3. Run on iOS (dev build)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   ```bash
+   npx expo run:ios
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+   Requires Xcode installed.
 
-## Get a fresh project
+4. Run on Android (dev build)
 
-When you're ready, run:
+   ```bash
+   npx expo run:android
+   ```
 
-```bash
-npm run reset-project
-```
+   Requires Android Studio with an emulator or a connected device.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Architecture decisions
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- State: Zustand store (`state/appState.ts`) with persisted partial state (`isDarkMode`, `igSites`, `inputText`). Edits via `updateIgSite`, merging `profileData` patches.
+- Persistence: `createJSONStorage(StorageHelper)` using AsyncStorage in `utils/storage.ts` with debounced writes for the main key.
+- Routing: `expo-router` Stack with `index` (onboarding) and `preview` (templates). Username is passed in the route and selects the site.
+- Theming: Central palette in `constants/colors.ts`. `useThemeColor` resolves theme; `ThemedView` animates theme via a shared progress value.
+- Components:
+  - Primitives: `ThemedText`, `ThemedTextInput`, `ThemedView`, `AppImage`
+  - UI: `Segments` (template switch), `AppHeader` (back/publish)
+  - Editables: Inline title/about editors
+- Templates: `MerlinOne` (classic, 3‑col grid) and `MerlinTwo` (hero + 2‑col grid), reading from persisted `site.profileData`.
+- Animations: Reanimated for template transitions, list item entrances, theme interpolation, and onboarding “Scraping” progress.
+- Validation: Username validated with `/^[a-z0-9._]{1,30}$/i`, error shown inline under input.
+- Trade-offs: Local mock data only; minimal footprint; tests omitted due to timebox.
